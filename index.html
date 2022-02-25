@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Math Client</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <link rel="apple-touch-icon" sizes="180x180" href="./static/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./static/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./static/icons/favicon-16x16.png">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="mask-icon" href="./static/icons/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#5bbad5">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/material-components-web.min.css">
+  <script defer src="./static/js/material-components-web.min.js"></script>
+  <script defer src="https://unpkg.com/mathlive/dist/mathlive.min.js"></script>
+
+  <style>
+    :root {
+      --mdc-theme-primary: #5bbad5;
+      --mdc-theme-secondary: #ffffff;
+      ;
+      --mdc-theme-on-primary: #ffffff;
+      --mdc-theme-on-secondary: #d32f2f;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .app-bar__title-link {
+      display: flex;
+      align-items: center;
+      color: var(--mdc-theme-on-primary, #ffffff);
+      margin: 0 8px;
+    }
+
+    .app-bar__title-link,
+    .app-bar__title-link:active,
+    .app-bar__title-link:focus,
+    .app-bar__title-link:hover {
+      text-decoration: none
+    }
+
+    .app-bar__title {
+      margin: 0 8px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      letter-spacing: normal;
+    }
+
+    .app-bar__leading-icon {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .container {
+      margin: 0 auto;
+      padding: 1rem;
+      max-width: 800px;
+    }
+
+    math-field:not(:defined) {
+      display: none;
+    }
+
+    math-field {
+      font-size: 1.5rem;
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 1px -1px rgba(0, 0, 0, .2), 0 1px 1px 0 rgba(0, 0, 0, .14), 0 1px 3px 0 rgba(0, 0, 0, .12)
+    }
+
+    math-field:focus-within {
+      outline: none;
+      box-shadow: 0 2px 4px -1px rgba(0, 0, 0, .2), 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12)
+    }
+
+    .mdc-text-field {
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="app-bar mdc-top-app-bar mdc-top-app-bar--fixed" data-mdc-auto-init="MDCToppAppBar">
+    <div class="mdc-top-app-bar__row">
+      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+
+        <a class="app-bar__title-link" href="./">
+          <div class="app-bar__leading-icon"><img src="./static/icons/favicon-32x32.png" alt="Math Client"></div>
+          <span class="mdc-top-app-bar__title">Math Client</span>
+        </a>
+      </section>
+    </div>
+  </header>
+  <main class="mdc-top-app-bar--fixed-adjust">
+    <div class="container">
+      <math-field id="formula" smart-mode virtual-keyboard-mode="onfocus">
+        x=\frac{-b\pm \sqrt{b^2-4ac}}{2a}
+      </math-field>
+      <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label"
+        data-mdc-auto-init="MDCTextField">
+        <span class="mdc-notched-outline">
+          <span class="mdc-notched-outline__leading"></span>
+          <span class="mdc-notched-outline__trailing"></span>
+        </span>
+        <span class="mdc-text-field__resizer">
+          <textarea id="latex" class="mdc-text-field__input" cols="2"></textarea>
+        </span>
+      </label>
+    </div>
+  </main>
+
+
+  <script>
+    const mf = document.querySelector('#formula');
+    const latexField = document.querySelector('#latex');
+    latexField.addEventListener('input', () =>
+      mf.setValue(latexField.value)
+    );
+    function updateLatex() {
+      document.querySelector('#latex').value = mf.value;
+    }
+    mf.addEventListener('input', updateLatex);
+    window.onload = () => updateLatex();
+  </script>
+
+<script type="module" src="./static/js/pwabuilder-sw-register.js"></script>
+
+</body>
+
+</html>
