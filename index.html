@@ -16,6 +16,8 @@
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="./static/css/material-components-web.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/mathlive/dist/mathlive-static.css">
+  <link rel="stylesheet" href="https://unpkg.com/mathlive/dist/mathlive-fonts.css">
   <script defer src="./static/js/material-components-web.min.js"></script>
   <script defer src="https://unpkg.com/mathlive/dist/mathlive.min.js"></script>
 
@@ -59,6 +61,8 @@
     }
 
     .container {
+      display: flex;
+      flex-direction: column;
       margin: 0 auto;
       padding: 1rem;
       max-width: 800px;
@@ -84,6 +88,27 @@
     .mdc-text-field {
       width: 100%;
     }
+
+    .print-scrim {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.95);
+      z-index: 1;
+    }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .print-scrim {
+        display: none;
+      }
+    }
   </style>
 </head>
 
@@ -101,7 +126,8 @@
   </header>
   <main class="mdc-top-app-bar--fixed-adjust">
     <div class="container">
-      <math-field id="formula" smart-mode virtual-keyboard-mode="onfocus">
+      <math-field id="formula" class="printable" smart-mode virtual-keyboard-mode="onfocus"
+        virtual-keyboard-theme="material">
         x=\frac{-b\pm \sqrt{b^2-4ac}}{2a}
       </math-field>
       <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label"
@@ -114,6 +140,12 @@
           <textarea id="latex" class="mdc-text-field__input" cols="2"></textarea>
         </span>
       </label>
+      <button class="mdc-button mdc-button--outlined mdc-button--icon-leading" style="align-self: flex-end; margin-top: 1rem;"
+        data-mdc-auto-init="MDCRipple" onclick="printLatex()">
+        <span class="mdc-button__ripple"></span>
+        <i class="material-icons mdc-button__icon" aria-hidden="true">print</i>
+        <span class="mdc-button__label">print</span>
+      </button>
     </div>
   </main>
 
@@ -125,13 +157,30 @@
       mf.setValue(latexField.value)
     );
     function updateLatex() {
-      document.querySelector('#latex').value = mf.value;
+      latexField.value = mf.value;
     }
     mf.addEventListener('input', updateLatex);
     window.onload = () => updateLatex();
+
+    const printLatex = () => {
+      var originalContents = [...document.body.children];
+
+      var script = document.createElement('script');
+      script.type = 'math/tex';
+      script.innerHTML = mf.value;
+
+      var prinScrim = document.createElement('div');
+      prinScrim.className = 'print-scrim';
+
+      document.body.replaceChildren(prinScrim, script);
+      MathLive.renderMathInDocument(document.body);
+      window.print();
+
+      setTimeout(() => document.body.replaceChildren(...originalContents), 500);
+    };
   </script>
 
-<script type="module" src="./static/js/pwabuilder-sw-register.js"></script>
+  <script type="module" src="./static/js/pwabuilder-sw-register.js"></script>
 
 </body>
 
