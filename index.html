@@ -126,58 +126,125 @@
   </header>
   <main class="mdc-top-app-bar--fixed-adjust">
     <div class="container">
-      <math-field id="formula" class="printable" smart-mode virtual-keyboard-mode="onfocus"
-        virtual-keyboard-theme="material">
+      <math-field id="formula" smart-mode virtual-keyboard-mode="onfocus" virtual-keyboard-theme="apple">
         x=\frac{-b\pm \sqrt{b^2-4ac}}{2a}
       </math-field>
-      <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label"
-        data-mdc-auto-init="MDCTextField">
-        <span class="mdc-notched-outline">
-          <span class="mdc-notched-outline__leading"></span>
-          <span class="mdc-notched-outline__trailing"></span>
-        </span>
-        <span class="mdc-text-field__resizer">
-          <textarea id="latex" class="mdc-text-field__input" cols="2"></textarea>
-        </span>
-      </label>
-      <button class="mdc-button mdc-button--outlined mdc-button--icon-leading" style="align-self: flex-end; margin-top: 1rem;"
-        data-mdc-auto-init="MDCRipple" onclick="printLatex()">
-        <span class="mdc-button__ripple"></span>
-        <i class="material-icons mdc-button__icon" aria-hidden="true">print</i>
-        <span class="mdc-button__label">print</span>
-      </button>
+      <div class="tools">
+        <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label"
+          data-mdc-auto-init="MDCTextField">
+          <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__trailing"></span>
+          </span>
+          <span class="mdc-text-field__resizer">
+            <textarea id="latex" class="mdc-text-field__input" cols="2"></textarea>
+          </span>
+        </label>
+        <button class="mdc-button mdc-button--outlined mdc-button--icon-leading"
+          style="align-self: flex-end; margin-top: 1rem;" data-mdc-auto-init="MDCRipple" onclick="printLatex()">
+          <span class="mdc-button__ripple"></span>
+          <i class="material-icons mdc-button__icon" aria-hidden="true">print</i>
+          <span class="mdc-button__label">print</span>
+        </button>
+        <button class="mdc-fab mdc-fab--extended" style="position: fixed; bottom: 1rem; right: 1rem;"
+          data-mdc-auto-init="MDCRipple" onclick="addMathField(true)">
+          <div class="mdc-fab__ripple"></div>
+          <span class="material-icons mdc-fab__icon">add</span>
+          <span class="mdc-fab__label">Add MathField</span>
+        </button>
+      </div>
     </div>
   </main>
 
 
   <script>
-    const mf = document.querySelector('#formula');
     const latexField = document.querySelector('#latex');
-    latexField.addEventListener('input', () =>
-      mf.setValue(latexField.value)
-    );
+    const mathFields = Array.from(document.querySelectorAll('math-field'));
+    mathFields.forEach(mf => mf.addEventListener('input', updateLatex));
+
+    var latexRepo = {};
+
+    latexField.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        addMathField();
+      }
+    });
+    mathFields.forEach(mf => mf.addEventListener('keystroke', function (e) {
+      if (e.detail.event.key === 'Enter') {
+        addMathField();
+      }
+    }));
+    latexField.addEventListener('input', (e) => {
+
+      latexField.rows = Math.max(2, latexField.value.split('\n').length);
+      let RowNumber = getRowNumber(latexField);
+      console.log(RowNumber);
+
+      mathFields[RowNumber].setValue(getRowContent(latexField, RowNumber));
+
+    });
+
+    function getRowNumber(textarea) {
+      return textarea.value.substr(0, textarea.selectionStart).split("\n").length - 1;
+    };
+    getRowContent = (textarea, rowNumber) => {
+      return textarea.value.split("\n")[rowNumber]
+    };
+
     function updateLatex() {
-      latexField.value = mf.value;
+      mathFields.forEach((mf, index) => {
+        latexRepo[index] = mf.value;
+      });
+      latexField.value = Object.values(latexRepo).join("\n");
     }
-    mf.addEventListener('input', updateLatex);
+
     window.onload = () => updateLatex();
 
     const printLatex = () => {
       var originalContents = [...document.body.children];
 
-      var script = document.createElement('script');
-      script.type = 'math/tex';
-      script.innerHTML = mf.value;
-
       var prinScrim = document.createElement('div');
       prinScrim.className = 'print-scrim';
+      document.body.replaceChildren(prinScrim);
 
-      document.body.replaceChildren(prinScrim, script);
+      Object.values(latexRepo).forEach((latex, index) => {
+        var script = document.createElement('script');
+        script.type = 'math/tex';
+        script.text = latex;
+
+        document.body.appendChild(script);
+      });
+
+
       MathLive.renderMathInDocument(document.body);
       window.print();
 
-      setTimeout(() => document.body.replaceChildren(...originalContents), 500);
+      document.body.replaceChildren(...originalContents);
     };
+    const addMathField = (addNewLine = false) => {
+      var mf = document.createElement('math-field');
+      mf.smartMode = true;
+      mf.virtualKeyboardMode = 'onfocus';
+      mf.virtualKeyboardTheme = 'apple';
+      mf.addEventListener('input', updateLatex);
+      mf.addEventListener('keystroke', function (e) {
+        if (e.detail.event.key === 'Enter') {
+          addMathField();
+        }
+      });
+      var tools = document.querySelector('.tools');
+      tools.before(mf);
+      mathFields.push(mf);
+      mf.focus();
+      if (addNewLine) latexField.value += '\n';
+    };
+
+    // const removeMathField = (index) => {
+    //   var mf = mathFields[index];
+    //   mf.remove();
+    //   updateLatex();
+    // };
+
   </script>
 
   <script type="module" src="./static/js/pwabuilder-sw-register.js"></script>
